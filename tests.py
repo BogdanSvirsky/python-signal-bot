@@ -37,6 +37,8 @@ def test_work(start_timestamp: int, currency_pairs_list: list[str]) -> NoReturn:
         "2shPKm7JvugvqQY8CX2Nc5hFBGM7A6b9Wu7C4ztqEHHkcNc56Fp5d3rD0PB9oDX2"
     )
     trade_bot = TradeBot()
+    trade_bot.up_ratio = 5
+    trade_bot.down_ratio = 3
     timestamp: int = start_timestamp
     while timestamp <= int(time()) * 1000:
         for currency_pair in currency_pairs_list:
@@ -50,7 +52,7 @@ def test_work(start_timestamp: int, currency_pairs_list: list[str]) -> NoReturn:
                                                             data_frame["low_price"].tolist(),
                                                             data_frame["high_price"].tolist()):
                 print('\t' + datetime.utcfromtimestamp(open_timestamp / 1000).strftime("%d-%m-%Y %H:%M:%S"))
-                if max_value > predict.close_price:
+                if not(min_value <= predict.close_price <= max_value):
                     if min_value <= predict.take_profit_price <= max_value:
                         print(predict, "WIN")
                 else:
