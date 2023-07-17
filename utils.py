@@ -16,7 +16,7 @@ def plot_approx_data(x_data: numpy.core.multiarray, y_data: numpy.core.multiarra
 
 
 def plot_approx_diff_data(x_data: numpy.core.multiarray, y_approx_data: numpy.core.multiarray,
-                     y_diff_data: numpy.core.multiarray):
+                          y_diff_data: numpy.core.multiarray):
     fig, axs = pyplot.subplots(nrows=2, ncols=1)
     for ax, n in zip(axs.flatten(), range(2)):
         if n == 1:

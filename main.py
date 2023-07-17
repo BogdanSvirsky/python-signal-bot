@@ -1,5 +1,3 @@
-import telegram
-
 from trade_bot import TradeBot
 from telegram.ext import Application, CommandHandler, ContextTypes
 from telegram import Update
@@ -52,15 +50,16 @@ async def stop_trade(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(chat_id=update.effective_chat.id, text="Торговля уже остановлена")
 
 
-coin_list = ["ADAUSDT", "ATOMUSDT", "AVAXUSDT", "AXSUSDT", "BCHUSDT", "BNBUSDT", "BTCUSDT", "CHRUSDT", "CRVUSDT",
-             "DOTUSDT", "ETHUSDT", "FTMUSDT", "LINKUSDT", "MATICUSDT", "ONEUSDT", "SOLUSDT", "CHZUSDT", "1INCHUSDT",
-             "AAVEUSDT", "ADAUSDT", "ATOMUSDT", "AVAXUSDT", "AXSUSDT", "BCHUSDT", "BNBUSDT", "BTCUSDT", "COMPUSDT",
-             "CRVUSDT", "DASHUSDT", "DOTUSDT", "DYDXUSDT", "ENJUSDT", "EOSUSDT", "ETCUSDT", "ETHUSDT", "FTMUSDT",
-             "KAVAUSDT", "KSMUSDT", "LINKUSDT", "ONEUSDT", "SANDUSDT", "SOLUSDT", "SUSHIUSDT", "SXPUSDT", "TRXUSDT",
-             "UNIUSDT", "UNFIUSDT", "PEOPLEUSDT", "DYDXUSDT", "ANCUSDT", "ANTUSDT", "API3USDT", "BALUSDT", "BELUSDT",
-             "BNXUSDT", "BNXUSDT", "DARUSDT", "DENTUSDT", "DGBUSDT", "ENSUSDT", "HNTUSDT", "IMXUSDT", "KLAYUSDT",
-             "LITUSDT", "LRCUSDT", "MASKUSDT", "XEMUSDT", "NUUSDT", "ROSEUSDT", "SNXUSDT", "STMXUSDT", "TOMOUSDT",
-             "WOOUSDT", "YFIIUSDT"]
+coin_list: list[str] = ["ADAUSDT", "ATOMUSDT", "AVAXUSDT", "AXSUSDT", "BCHUSDT", "BNBUSDT", "BTCUSDT", "CHRUSDT",
+                        "CRVUSDT", "DOTUSDT", "ETHUSDT", "FTMUSDT", "LINKUSDT", "MATICUSDT", "ONEUSDT", "SOLUSDT",
+                        "CHZUSDT", "1INCHUSDT", "AAVEUSDT", "ADAUSDT", "ATOMUSDT", "AVAXUSDT", "AXSUSDT", "BCHUSDT",
+                        "BNBUSDT", "BTCUSDT", "COMPUSDT", "CRVUSDT", "DASHUSDT", "DOTUSDT", "DYDXUSDT", "ENJUSDT",
+                        "EOSUSDT", "ETCUSDT", "ETHUSDT", "FTMUSDT", "KAVAUSDT", "KSMUSDT", "LINKUSDT", "ONEUSDT",
+                        "SANDUSDT", "SOLUSDT", "SUSHIUSDT", "SXPUSDT", "TRXUSDT", "UNIUSDT", "UNFIUSDT", "PEOPLEUSDT",
+                        "DYDXUSDT", "ANCUSDT", "ANTUSDT", "API3USDT", "BALUSDT", "BELUSDT", "BNXUSDT", "BNXUSDT",
+                        "DARUSDT", "DENTUSDT", "DGBUSDT", "ENSUSDT", "HNTUSDT", "IMXUSDT", "KLAYUSDT", "LITUSDT",
+                        "LRCUSDT", "MASKUSDT", "XEMUSDT", "NUUSDT", "ROSEUSDT", "SNXUSDT", "STMXUSDT", "TOMOUSDT",
+                        "WOOUSDT", "YFIIUSDT"]
 
 current_users = [557001882, 978982709]
 current_chats = []

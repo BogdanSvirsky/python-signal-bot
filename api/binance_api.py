@@ -4,7 +4,7 @@ from urllib.parse import urlencode
 import requests
 import time
 import pandas
-import pandas_ta as ta  # technical analysis library
+from typing import NoReturn
 
 
 def get_timestamp() -> int:
@@ -58,25 +58,39 @@ class BinanceAPI:
             headers=self.header
         ).json()
 
-    def get_candles(self, currency_pair: str, interval: str) -> list | None:
+    def get_candles(self, currency_pair: str, interval: str, start_time: int = None,
+                    end_time: int = None, limit: int = 500) -> pandas.DataFrame | NoReturn:  # time in ms
+        params = {
+            "symbol": currency_pair,
+            "interval": interval,
+            "limit": limit,
+        }
+        if start_time is not None:
+            params["startTime"] = start_time
+        if end_time is not None:
+            params["endTime"] = end_time
+
         response = requests.get(
             self.base_url + "/fapi/v1/klines",
-            params={
-                "symbol": currency_pair,
-                "interval": interval,
-            }
+            params=params
         )
         if response.status_code == 200:
-            result = []
+            data = []
 
             for elem in response.json():
-                result.append(
+                data.append(
                     [int(elem[0]), float(elem[1]), float(elem[2]), float(elem[3]), float(elem[4]), float(elem[5]),
                      int(elem[6]), float(elem[7]), int(elem[8]), float(elem[9]), float(elem[10]), float(elem[11])]
                 )
-            return result
         else:
-            return None
+            raise Exception("Bad request :(")
+
+        data_frame = pandas.DataFrame(data)
+        data_frame = data_frame.drop(columns=[9, 10, 11])
+        data_frame.columns = ["open_time", "open_price", "high_price", "low_price", "close_price",
+                              "volume", "close_time", "quote_asset_volume", "number_of_trades"]
+
+        return data_frame
 
     def make_order(self, currency_pair: str, side: str, order_type: str, position_side: str,
                    quantity: float, price: float, leverage: int, stop_price: int = None) -> dict:
@@ -121,7 +135,7 @@ class BinanceAPI:
         return response.json()
 
     def cancel_last_order(self, currency_pair: str) -> dict | None:
-        if self.last_order_id:
+        if self.last_orders_id:
             params = {
                 "symbol": currency_pair,
                 "origClientOrderId": self.last_orders_id[currency_pair],
@@ -138,18 +152,6 @@ class BinanceAPI:
 
         return None
 
-    def get_klines_data(self, currency_pair: str, interval: str) -> pandas.DataFrame | None:
-        data = self.get_candles(currency_pair, interval)
-        if data is None:
-            return None
-
-        data_frame = pandas.DataFrame(data)
-        data_frame = data_frame.drop(columns=[9, 10, 11])
-        data_frame.columns = ["open_time", "open_price", "high_price", "low_price", "close_price",
-                              "volume", "close_time", "quote_asset_volume", "number_of_trades"]
-
-        return data_frame
-
 
 if __name__ == "__main__":
     api = BinanceAPI(
@@ -158,4 +160,3 @@ if __name__ == "__main__":
     )
 
     # print(api.make_order("DOGEUSDT", "BUY", "LIMIT", "LONG", 100, 0.06145, 10))
-    print(api.get_indicators("BTCUSDT", "15m"))
