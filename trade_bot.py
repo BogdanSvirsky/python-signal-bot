@@ -54,7 +54,7 @@ class TradeBot:
         y_data = numpy.array(data_frame["%DEV"].tolist())
         approximation = numpy.polynomial.Polynomial.fit(x_data, y_data, self.degree)
         last_timestamp = x_data[-1]
-        interval = 1200000  # interval in ms, where we want to see a roots
+        interval = 900000  # interval in ms, where we want to see a roots
         diff_y = approximation.deriv()
         diff_roots = fsolve(diff_y, numpy.array([last_timestamp - interval, last_timestamp + interval]))
         for root in diff_roots:
