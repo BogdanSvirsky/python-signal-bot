@@ -40,24 +40,21 @@ def test_work(start_timestamp: int, currency_pairs_list: list[str]) -> NoReturn:
     trade_bot.up_ratio = 5
     trade_bot.down_ratio = 3
     timestamp: int = start_timestamp
+    predict: Predict = None
     while timestamp <= int(time()) * 1000:
         for currency_pair in currency_pairs_list:
             data_frame = api.get_candles(currency_pair, interval, end_time=timestamp)
-            predict: Predict = trade_bot.make_prediction(data_frame)
             print(datetime.utcfromtimestamp(timestamp / 1000).strftime("%d-%m-%Y %H:%M:%S"))
-            timestamp += 5 * 60 * 1000
             if predict is None:
-                continue
-            for open_timestamp, min_value, max_value in zip(data_frame["open_time"].tolist(),
-                                                            data_frame["low_price"].tolist(),
-                                                            data_frame["high_price"].tolist()):
-                print('\t' + datetime.utcfromtimestamp(open_timestamp / 1000).strftime("%d-%m-%Y %H:%M:%S"))
-                if not(min_value <= predict.close_price <= max_value):
-                    if min_value <= predict.take_profit_price <= max_value:
-                        print(predict, "WIN")
-                else:
+                predict: Predict = trade_bot.make_prediction(data_frame)
+            else:
+                last_candle = data_frame.iloc[-1]
+                if predict.take_profit_price <= last_candle["high_price"] and predict.close_price < last_candle["low_price"]:
+                    print(predict, "WIN")
+                elif predict.close_price >= last_candle["low_price"]:
                     print(predict, "LOSE")
+            timestamp += 5 * 60 * 1000
 
 
 if __name__ == "__main__":
-    test_work(1686878855000, coin_list)
+    test_work(1685577600000, ["BTCUSDT"])
