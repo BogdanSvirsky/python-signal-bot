@@ -1,4 +1,4 @@
-import pandas
+from pandas import DataFrame, concat
 from api.binance_api import BinanceAPI
 from trade_bot import TradeBot, Predict
 from time import time
@@ -25,24 +25,31 @@ def calculate_max_dev_by_month(currency_pair: str) -> float:
     now: int = int(time())
     for timestamp in range((now - 2678400) * 1000, now * 1000, 449700000 - 5 * 3600000):
         data_frames.append(api.get_candles(currency_pair, "5m", timestamp, timestamp + 449700000, 1500))
-    data_frame = pandas.concat(data_frames)
+    data_frame = concat(data_frames)
     trade_bot.make_prediction(data_frame)
     return max(data_frame["%DEV"].tolist())
 
 
 def test_work(start_timestamp: int, currency_pairs_list: list[str]) -> NoReturn:
     interval = "5m"
+    count = len(currency_pairs_list)
     api = BinanceAPI(
         "GENPXi3IwkasQcarm6eBNcaWAeBR6bs5qTNaRZgKALhmHHKQBVzHnfvZD1nu7RSy",
         "2shPKm7JvugvqQY8CX2Nc5hFBGM7A6b9Wu7C4ztqEHHkcNc56Fp5d3rD0PB9oDX2"
     )
     trade_bot = TradeBot()
-    trade_bot.up_ratio = 5
-    trade_bot.down_ratio = 3
     timestamp: int = start_timestamp
+
+    data: DataFrame = [DataFrame() for _ in range(count)]
+
+    while timestamp <= time() * 1000:
+        for i in range(count):
+            data[i] = concat([data[i], api.get_candles(currency_pairs_list[i], interval, end_time=timestamp)])
+        timestamp += 5 * 60 * 1000 * 500
+
     while timestamp <= int(time()) * 1000:
-        for currency_pair in currency_pairs_list:
-            data_frame = api.get_candles(currency_pair, interval, end_time=timestamp)
+        for i in range(count):
+            data_frame = data[i]  # TODO: get 500 rows by timestamp
             predict: Predict = trade_bot.make_prediction(data_frame)
             print(datetime.utcfromtimestamp(timestamp / 1000).strftime("%d-%m-%Y %H:%M:%S"))
             timestamp += 5 * 60 * 1000
@@ -52,7 +59,7 @@ def test_work(start_timestamp: int, currency_pairs_list: list[str]) -> NoReturn:
                                                             data_frame["low_price"].tolist(),
                                                             data_frame["high_price"].tolist()):
                 print('\t' + datetime.utcfromtimestamp(open_timestamp / 1000).strftime("%d-%m-%Y %H:%M:%S"))
-                if not(min_value <= predict.close_price <= max_value):
+                if not (min_value <= predict.close_price <= max_value):
                     if min_value <= predict.take_profit_price <= max_value:
                         print(predict, "WIN")
                 else:
