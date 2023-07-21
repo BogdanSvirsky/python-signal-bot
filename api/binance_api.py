@@ -3,7 +3,7 @@ import hmac
 from urllib.parse import urlencode
 import requests
 import time
-from pandas import DataFrame
+import pandas
 from typing import NoReturn
 
 
@@ -59,7 +59,7 @@ class BinanceAPI:
         ).json()
 
     def get_candles(self, currency_pair: str, interval: str, start_time: int = None,
-                    end_time: int = None, limit: int = 500) -> DataFrame:  # time in ms
+                    end_time: int = None, limit: int = 500) -> pandas.DataFrame | NoReturn:  # time in ms
         params = {
             "symbol": currency_pair,
             "interval": interval,
@@ -85,7 +85,7 @@ class BinanceAPI:
         else:
             raise Exception("Bad request :(")
 
-        data_frame = DataFrame(data)
+        data_frame = pandas.DataFrame(data)
         data_frame = data_frame.drop(columns=[9, 10, 11])
         data_frame.columns = ["open_time", "open_price", "high_price", "low_price", "close_price",
                               "volume", "close_time", "quote_asset_volume", "number_of_trades"]
