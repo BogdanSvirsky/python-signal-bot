@@ -47,7 +47,8 @@ def test_work(start_timestamp: int, currency_pairs_list: list[str]) -> NoReturn:
             print(datetime.utcfromtimestamp(timestamp / 1000).strftime("%d-%m-%Y %H:%M:%S"))
             if predict is None:
                 predict: Predict = trade_bot.make_prediction(data_frame)
-                print("OPEN", predict)
+                if predict is not None:
+                    print("OPEN", predict)
             else:
                 last_candle = data_frame.iloc[-1]
                 if predict.take_profit_price <= last_candle["high_price"] and predict.close_price < last_candle["low_price"]:
