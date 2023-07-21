@@ -51,8 +51,10 @@ def test_work(start_timestamp: int, currency_pairs_list: list[str]) -> NoReturn:
                 last_candle = data_frame.iloc[-1]
                 if predict.take_profit_price <= last_candle["high_price"] and predict.close_price < last_candle["low_price"]:
                     print(predict, "WIN")
+                    predict = None
                 elif predict.close_price >= last_candle["low_price"]:
                     print(predict, "LOSE")
+                    predict = None
             timestamp += 5 * 60 * 1000
 
 
