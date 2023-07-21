@@ -15,7 +15,7 @@ class Predict:
     close_price: float
 
     def __str__(self):
-        return ' '.join([self.type, str(self.take_profit_price), self.close_price])
+        return ' '.join([self.type, str(self.take_profit_price), str(self.close_price)])
 
 
 class TradeBot:
