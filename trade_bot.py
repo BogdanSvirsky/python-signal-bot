@@ -62,9 +62,10 @@ class TradeBot:
             if self.down_ratio <= approximation(root) <= self.up_ratio:
                 # current_price = data_frame["close_price"].iloc[-1]
                 predict = Predict("SHORT", current_price * 0.99, current_price * 1.0033)
+                return predict
             elif -self.down_ratio >= approximation(root) >= -self.up_ratio:
                 predict = Predict("LONG", current_price * 1.01, current_price * 0.9967)
-            return predict
+                return predict
         return
 
 
