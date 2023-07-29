@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import hashlib
 import hmac
 from urllib.parse import urlencode
@@ -5,10 +6,37 @@ import requests
 import time
 import pandas
 from typing import NoReturn
+from requests_futures.sessions import FuturesSession
+from concurrent.futures import as_completed
 
 
 def get_timestamp() -> int:
     return int(time.time() * 1000)
+
+
+def process_get_candles_data(response: requests.Response) -> pandas.DataFrame:
+    data = []
+    for elem in response.json():
+        data.append(
+            [int(elem[0]), float(elem[1]), float(elem[2]), float(elem[3]), float(elem[4]), float(elem[5]),
+             int(elem[6]), float(elem[7]), int(elem[8]), float(elem[9]), float(elem[10]), float(elem[11])]
+        )
+
+    data_frame = pandas.DataFrame(data)
+    data_frame = data_frame.drop(columns=[9, 10, 11])
+    data_frame.columns = ["open_time", "open_price", "high_price", "low_price", "close_price",
+                          "volume", "close_time", "quote_asset_volume", "number_of_trades"]
+
+    return data_frame
+
+
+@dataclass
+class GetCandlesRequest:
+    currency_pair: str
+    interval: str
+    start_time: int = None
+    end_time: int = None
+    limit: int = 500
 
 
 class BinanceAPI:
@@ -75,22 +103,40 @@ class BinanceAPI:
             params=params
         )
         if response.status_code == 200:
-            data = []
-
-            for elem in response.json():
-                data.append(
-                    [int(elem[0]), float(elem[1]), float(elem[2]), float(elem[3]), float(elem[4]), float(elem[5]),
-                     int(elem[6]), float(elem[7]), int(elem[8]), float(elem[9]), float(elem[10]), float(elem[11])]
-                )
+            return process_get_candles_data(response)
         else:
             raise Exception("Bad request :(")
 
-        data_frame = pandas.DataFrame(data)
-        data_frame = data_frame.drop(columns=[9, 10, 11])
-        data_frame.columns = ["open_time", "open_price", "high_price", "low_price", "close_price",
-                              "volume", "close_time", "quote_asset_volume", "number_of_trades"]
+    def get_a_lot_of_candles(self, requests_list: list[GetCandlesRequest]) -> pandas.DataFrame:
+        result = pandas.DataFrame()
+        futures = []
 
-        return data_frame
+        with FuturesSession() as session:
+            for get_candles_request in requests_list:
+                params = {
+                    "symbol": get_candles_request.currency_pair,
+                    "interval": get_candles_request.interval,
+                    "limit": get_candles_request.limit,
+                }
+                if get_candles_request.start_time is not None:
+                    params["startTime"] = get_candles_request.start_time
+                if get_candles_request.end_time is not None:
+                    params["endTime"] = get_candles_request.end_time
+
+                futures.append(session.get(
+                    self.base_url + "/fapi/v1/klines",
+                    params=params
+                ))
+
+        for future in as_completed(futures):
+            if future.result().status_code == 200:
+                result = pandas.concat([result, process_get_candles_data(future.result())])
+            else:
+                raise Exception("Bad future!")
+
+        result = result.sort_values("open_time", ignore_index=True)
+
+        return result
 
     def make_order(self, currency_pair: str, side: str, order_type: str, position_side: str,
                    quantity: float, price: float, leverage: int, stop_price: int = None) -> dict:
