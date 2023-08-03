@@ -10,7 +10,8 @@ from main import coin_list
 
 def test_work(start_timestamp: int, currency_pairs_list: list[str]) -> NoReturn:
     interval = "5m"
-    api = BinanceAPI(
+    api = BinanceAPI()
+    api.set_api(
         "GENPXi3IwkasQcarm6eBNcaWAeBR6bs5qTNaRZgKALhmHHKQBVzHnfvZD1nu7RSy",
         "2shPKm7JvugvqQY8CX2Nc5hFBGM7A6b9Wu7C4ztqEHHkcNc56Fp5d3rD0PB9oDX2"
     )
@@ -38,6 +39,7 @@ def test_work(start_timestamp: int, currency_pairs_list: list[str]) -> NoReturn:
 
         candles_data[currency_pair] = ExchangeData(api.get_a_lot_of_candles(requests_list))
         timestamp = start_timestamp
+        print(currency_pair, "done!")
 
     timestamp = start_timestamp + 500 * 5 * 60 * 1000
     print("data completed")
@@ -57,8 +59,9 @@ def test_work(start_timestamp: int, currency_pairs_list: list[str]) -> NoReturn:
             else:
                 last_candle = data_frame.iloc[-1]
                 predict = predicts[currency_pair]
-                if predict.take_profit_price <= last_candle["high_price"] and predict.close_price < last_candle[
-                    "low_price"]:
+                if predict.take_profit_price <= last_candle["high_price"] and ((predict.close_price < last_candle[
+                    "low_price"] and predict.type == "LONG") or (predict.close_price > last_candle[
+                    "low_price"] and predict.type == "SHORT")):
                     print("CLOSE", "WIN", predict, currency_pair)
                     del predicts[currency_pair]
                     win += 1
@@ -70,12 +73,9 @@ def test_work(start_timestamp: int, currency_pairs_list: list[str]) -> NoReturn:
 
 
 if __name__ == "__main__":
-    # api = BinanceAPI(
-    #     "GENPXi3IwkasQcarm6eBNcaWAeBR6bs5qTNaRZgKALhmHHKQBVzHnfvZD1nu7RSy",
-    #     "2shPKm7JvugvqQY8CX2Nc5hFBGM7A6b9Wu7C4ztqEHHkcNc56Fp5d3rD0PB9oDX2"
-    # )
+    # api = BinanceAPI()
     # print(ExchangeData(api.get_candles("BTCUSDT", "5m")).get_data())
-    test_work(1685577600000, ["BTCUSDT"])
+    test_work(1685577600000, coin_list)
     # for currency_pair in coin_list:
     #     make_csv_data(1687951557000, currency_pair, "5m")
     #     print(currency_pair, " done!")
