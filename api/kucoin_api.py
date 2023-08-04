@@ -9,13 +9,19 @@ import pandas
 
 class KucoinAPI:
     base_url: str = "https://api-futures.kucoin.com"
+    PASSPHRASE = ""
+    API_SECRET = ""
+    API_KEY = ""
 
-    def __init__(self, api_key: str, api_secret: str, passphrase: str):
+    def set_api(self, api_key: str, api_secret: str, passphrase: str):
         self.PASSPHRASE: str = passphrase
         self.API_SECRET: str = api_secret
         self.API_KEY: str = api_key
 
     def make_header(self, method: str, endpoint: str, body: dict) -> dict:
+        if not self.PASSPHRASE or not self.API_SECRET or not self.API_KEY:
+            raise Exception("empty Kucoin API")
+
         now = int(time.time() * 1000)
         data_json = json.dumps(body)
         str_to_sign = str(now) + method + endpoint + data_json
@@ -29,7 +35,6 @@ class KucoinAPI:
             "KC-API-KEY": self.API_KEY,
             "KC-API-PASSPHRASE": passphrase,
             "KC-API-KEY-VERSION": "2",
-            "Content-Type": "application/json"
         }
 
     def get_candles(self, interval: str, currency_pair: str) -> list:
@@ -46,7 +51,7 @@ class KucoinAPI:
     def make_order(
             self, currency_pair: str, side: str,
             stop: str, stop_price: float, leverage: int, quantity: int, limit_price: float,
-            type: str = "limit", stop_price_type: str = "TP"):
+            type: str = "limit", stop_price_type: str = "TP") -> str:
         body: dict = {
             "clientOid": "test",
             "type": type,
@@ -64,9 +69,10 @@ class KucoinAPI:
             data=json.dumps(body),
             headers=self.make_header("POST", "/api/v1/orders", body)
         )
-        return response.json()
+        print(response.json())
+        return response.json()["data"]["orderId"]
 
-    def get_klines_data(self, currency_pair: str, interval: str) -> pandas.DataFrame:
+    def get_candles(self, currency_pair: str, interval: str) -> pandas.DataFrame:  # doesn't work
         end_time = time.time() * 1000
 
         if interval == "1m":
@@ -88,9 +94,22 @@ class KucoinAPI:
         # data = response.json()["data"]
         # print(data, len(data))
 
+    def get_order(self, order_id: str) -> dict:
+        params = {
+            "order-id": order_id
+        }
+        return requests.get(
+            self.base_url + "/api/v1/orders/" + order_id,
+            headers=self.make_header("GET", "/api/v1/orders/" + order_id, {})
+        ).json()
+
 
 if __name__ == "__main__":
-    api = KucoinAPI("64816ce56152270001860c9f", "32f40af3-4599-4b42-9df4-7d68909c3842", "^r3*3rh!3JJk)9Lq-+")
-
-    # print(api.make_order("DOGEUSDTM", "buy", "up", 0.06145, 10, 100, 0.06145))
-    api.get_klines_data("DOGEUSDTM", "1m")
+    api = KucoinAPI()
+    api.set_api(
+        "64816ce56152270001860c9f",
+        "32f40af3-4599-4b42-9df4-7d68909c3842",
+        "^r3*3rh!3JJk)9Lq-+"
+    )
+    # print(api.get_order(api.make_order("DOGEUSDTM", "buy", "up", 0.06145, 10, 100, 0.06145)))
+    print(api.get_order("5bd6e9286d99522a52e458de"))

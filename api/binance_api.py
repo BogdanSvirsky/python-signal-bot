@@ -44,8 +44,9 @@ class BinanceAPI:
     API_SECRET = ""
     base_url = "https://fapi.binance.com"
     last_orders_id = {}
+    header = {}
 
-    def __init__(self, api_key: str, api_secret: str):
+    def set_api(self, api_key: str, api_secret: str):
         self.API_KEY = api_key
         self.API_SECRET = api_secret
         self.header = {
@@ -138,8 +139,8 @@ class BinanceAPI:
 
         return result
 
-    def make_order(self, currency_pair: str, side: str, order_type: str, position_side: str,
-                   quantity: float, price: float, leverage: int, stop_price: int = None) -> dict:
+    def make_order(self, currency_pair: str, side: str, order_type: str,
+                   price: float, leverage: int, stop_price: int = None) -> str:
         params = {
             "symbol": currency_pair,
             "leverage": str(leverage),
@@ -159,10 +160,8 @@ class BinanceAPI:
         params = {
             "symbol": currency_pair,
             "side": side,
-            "positionSide": position_side,
             "type": order_type,
             "stopPrice": str(stop_price),
-            "quantity": str(quantity),
             "price": str(price),
             "close_position": "true",
             "timeInForce": "GTC",
@@ -178,7 +177,7 @@ class BinanceAPI:
         if response.status_code == 200:
             self.last_orders_id[currency_pair] = response["clientOrderId"]
 
-        return response.json()
+        return response.json()["clientOrderId"]
 
     def cancel_last_order(self, currency_pair: str) -> dict | None:
         if self.last_orders_id:
@@ -198,11 +197,15 @@ class BinanceAPI:
 
         return None
 
+    def get_current_orders(self, currency_pair: str):
+        pass
+
+
 
 if __name__ == "__main__":
-    api = BinanceAPI(
+    api = BinanceAPI()
+    api.set_api(
         "GENPXi3IwkasQcarm6eBNcaWAeBR6bs5qTNaRZgKALhmHHKQBVzHnfvZD1nu7RSy",
         "2shPKm7JvugvqQY8CX2Nc5hFBGM7A6b9Wu7C4ztqEHHkcNc56Fp5d3rD0PB9oDX2"
     )
-
     # print(api.make_order("DOGEUSDT", "BUY", "LIMIT", "LONG", 100, 0.06145, 10))
