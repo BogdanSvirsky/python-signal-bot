@@ -73,6 +73,7 @@ class BinanceAPI:
         if response.status_code == 200:
             return response.json()
         else:
+            print(response.json())
             return None
 
     def set_dual_position(self, value: bool) -> dict:
@@ -82,13 +83,13 @@ class BinanceAPI:
         }
         params["signature"] = self.make_signature(params)
         return requests.post(
-            "https://fapi.binance.com/fapi/v1/positionSide/dual",
+            self.base_url + "/fapi/v1/positionSide/dual",
             params=params,
             headers=self.header
         ).json()
 
     def get_candles(self, currency_pair: str, interval: str, start_time: int = None,
-                    end_time: int = None, limit: int = 500) -> pandas.DataFrame | NoReturn:  # time in ms
+                    end_time: int = None, limit: int = 500) -> pandas.DataFrame:  # time in ms
         params = {
             "symbol": currency_pair,
             "interval": interval,
@@ -139,11 +140,11 @@ class BinanceAPI:
 
         return result
 
-    def make_order(self, currency_pair: str, side: str, order_type: str,
-                   price: float, leverage: int, stop_price: int = None) -> str:
+    def make_order(self, currency_pair: str, side: str, order_type: str, price: float, leverage: int, quantity: int,
+                   stop_price: float = None, stop_price_type: str = None) -> dict:
         params = {
             "symbol": currency_pair,
-            "leverage": str(leverage),
+            "leverage": leverage,
             "timestamp": get_timestamp()
         }
         params["signature"] = self.make_signature(params)
@@ -161,10 +162,30 @@ class BinanceAPI:
             "symbol": currency_pair,
             "side": side,
             "type": order_type,
-            "stopPrice": str(stop_price),
             "price": str(price),
-            "close_position": "true",
             "timeInForce": "GTC",
+            "timestamp": get_timestamp(),
+            "quantity": quantity
+        }
+
+        if stop_price is not None:
+            params["stopPrice"] = str(stop_price)
+        if stop_price_type is not None:
+            params["stopPriceType"] = stop_price_type
+
+        params["signature"] = self.make_signature(params)
+        response = requests.post(
+            self.base_url + "/fapi/v1/order",
+            params=params,
+            headers=self.header
+        )
+
+        return response.json()
+
+    def cancel_order(self, currency_pair: str, client_order_id: str) -> dict | None:
+        params = {
+            "symbol": currency_pair,
+            "origClientOrderId": client_order_id,
             "timestamp": get_timestamp()
         }
         params["signature"] = self.make_signature(params)
@@ -174,32 +195,21 @@ class BinanceAPI:
             headers=self.header
         )
 
-        if response.status_code == 200:
-            self.last_orders_id[currency_pair] = response["clientOrderId"]
+        return response.json()
 
-        return response.json()["clientOrderId"]
-
-    def cancel_last_order(self, currency_pair: str) -> dict | None:
-        if self.last_orders_id:
-            params = {
-                "symbol": currency_pair,
-                "origClientOrderId": self.last_orders_id[currency_pair],
-                "timestamp": get_timestamp()
-            }
-            params["signature"] = self.make_signature(params)
-            response = requests.post(
-                self.base_url + "/fapi/v1/order",
-                params=params,
-                headers=self.header
-            )
-
-            return response.json()
-
-        return None
-
-    def get_current_orders(self, currency_pair: str):
-        pass
-
+    def get_order(self, currency_pair: str, client_order_id: str) -> dict:
+        params = {
+            "symbol": currency_pair,
+            "origClientOrderId": client_order_id,
+            "timestamp": get_timestamp()
+        }
+        params["signature"] = self.make_signature(params)
+        response = requests.get(
+            self.base_url + "/fapi/v1/order",
+            params=params,
+            headers=self.header
+        )
+        return response.json()
 
 
 if __name__ == "__main__":
@@ -208,4 +218,15 @@ if __name__ == "__main__":
         "GENPXi3IwkasQcarm6eBNcaWAeBR6bs5qTNaRZgKALhmHHKQBVzHnfvZD1nu7RSy",
         "2shPKm7JvugvqQY8CX2Nc5hFBGM7A6b9Wu7C4ztqEHHkcNc56Fp5d3rD0PB9oDX2"
     )
-    # print(api.make_order("DOGEUSDT", "BUY", "LIMIT", "LONG", 100, 0.06145, 10))
+    print(api.set_dual_position(False))
+    price = api.get_candles("DOGEUSDT", "5m").iloc[-1]["close_price"]
+    order1 = api.make_order("DOGEUSDT", "BUY", "LIMIT", price, 20, 100)
+    time.sleep(0.1)
+    print(price, round(price * 1.03, 6))
+    order2 = api.make_order("DOGEUSDT", "SELL", "LIMIT", round(price * 1.03, 6), 20, 100)
+    print(order1, "open1")
+    print(order2, "open2")
+    print(api.get_order("DOGEUSDT", order1["clientOrderId"]), "get1")
+    print(api.get_order("DOGEUSDT", order2["clientOrderId"]), "get2")
+    print(api.cancel_order("DOGEUSDT", order1["clientOrderId"]), "close1")
+    print(api.cancel_order("DOGEUSDT", order2["clientOrderId"]), "close2")

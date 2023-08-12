@@ -1,7 +1,12 @@
-from trade_bot import TradeBot
+import time
+
+from trade_bot import TradeBot, Predict
 from telegram.ext import Application, CommandHandler, ContextTypes
 from telegram import Update
 from typing import Callable, NoReturn
+from time import sleep
+from api.binance_api import BinanceAPI
+from api.kucoin_api import KucoinAPI
 
 
 def auth(handler: Callable[[Update, ContextTypes], NoReturn]):
@@ -63,13 +68,44 @@ coin_list: list[str] = ["ADAUSDT", "ATOMUSDT", "AVAXUSDT", "AXSUSDT", "BCHUSDT",
 
 current_users = [557001882, 978982709]
 current_chats = []
-trade_bot = TradeBot()
 
 if __name__ == '__main__':
-    app = Application.builder().token("6385645019:AAG0VIYfnNbp18bZj_Ii720cm4aXadogGdA").build()
-    start_command_handler = CommandHandler("start", start)
-    help_command_handler = CommandHandler("help", help)
-    start_trade_command = CommandHandler("start_trade", start_trade)
-    stop_trade_command = CommandHandler("stop_trade", stop_trade)
-    app.add_handlers([start_command_handler, help_command_handler, start_trade_command, stop_trade_command])
-    app.run_polling()
+    # app = Application.builder().token("6385645019:AAG0VIYfnNbp18bZj_Ii720cm4aXadogGdA").build()
+    # start_command_handler = CommandHandler("start", start)
+    # help_command_handler = CommandHandler("help", help)
+    # start_trade_command = CommandHandler("start_trade", start_trade)
+    # stop_trade_command = CommandHandler("stop_trade", stop_trade)
+    # app.add_handlers([start_command_handler, help_command_handler, start_trade_command, stop_trade_command])
+    # app.run_polling()
+    trade_bot = TradeBot()
+    binance_api = BinanceAPI()
+    binance_api.set_api(
+        "GENPXi3IwkasQcarm6eBNcaWAeBR6bs5qTNaRZgKALhmHHKQBVzHnfvZD1nu7RSy",
+        "2shPKm7JvugvqQY8CX2Nc5hFBGM7A6b9Wu7C4ztqEHHkcNc56Fp5d3rD0PB9oDX2"
+    )
+    currency_pairs_list = ["BTCUSDT", "DOGEUSDT"]
+    orders: dict[str, tuple[str, str, int]] = {}  # tuple orderId and close time by symbol
+    while True:
+        for currency_pair in currency_pairs_list:
+            if currency_pair not in orders.keys():
+                data_frame = binance_api.get_candles(currency_pair, "5m")
+                predict = trade_bot.make_prediction(data_frame)
+                if predict:
+                    price = data_frame.iloc[-1]["close_price"]
+                    limit_order_id = binance_api.make_order(
+                        currency_pair,
+                        "BUY" if predict.type == "LONG" else "SELL",
+                        "LIMIT",
+                        price * 1.0001,
+                        
+                    )["clientOrderId"]
+                    take_profit_order_id = binance_api.make_order(...)["clientOrderId"]
+                    orders[currency_pair] = (
+                        limit_order_id, take_profit_order_id, (int(time.time()) + 6 * 5 * 60) * 1000
+                    )
+            elif currency_pair in orders.keys():
+                limit_order_id, take_profit_order_id, close_time = orders[currency_pair]
+                if close_time <= time.time() * 1000 * 5 * 60 * 6:
+                    binance_api.cancel_order(currency_pair, limit_order_id)
+                    binance_api.cancel_order(currency_pair, take_profit_order_id)
+                    del orders[currency_pair]

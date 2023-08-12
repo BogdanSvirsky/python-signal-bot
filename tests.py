@@ -1,11 +1,20 @@
 from pandas import DataFrame, concat
 from api.binance_api import BinanceAPI, GetCandlesRequest
 from trade_bot import TradeBot, Predict
-from models.exchange_data import ExchangeData
 from time import time
 from typing import NoReturn
 from datetime import datetime
 from main import coin_list
+
+
+def get_data(candles_data: DataFrame, timestamp: int = int(time()) * 1000, count_rows: int = 500, interval: str = "5m"):
+    if interval == "5m":
+        tmp = 5 * 60 * 1000
+    else:
+        tmp = 0
+    print(timestamp - count_rows * tmp, timestamp)
+    return candles_data.loc[(timestamp - count_rows * tmp) <= candles_data["open_time"]].loc[
+        candles_data["open_time"] <= timestamp]
 
 
 def test_work(start_timestamp: int, currency_pairs_list: list[str]) -> NoReturn:
@@ -20,7 +29,7 @@ def test_work(start_timestamp: int, currency_pairs_list: list[str]) -> NoReturn:
     trade_bot.down_ratio = 0
     timestamp: int = start_timestamp
     predicts: dict[str, Predict] = {}
-    candles_data: dict[str, ExchangeData] = {}
+    candles_data: dict[str, DataFrame] = {}
     count = 1500
     now_timestamp = int(time()) * 1000
     print("getting data")
@@ -37,7 +46,7 @@ def test_work(start_timestamp: int, currency_pairs_list: list[str]) -> NoReturn:
             )
             timestamp += 5 * 60 * 1000 * 1500  # for 5m
 
-        candles_data[currency_pair] = ExchangeData(api.get_a_lot_of_candles(requests_list))
+        candles_data[currency_pair] = api.get_a_lot_of_candles(requests_list)
         timestamp = start_timestamp
         print(currency_pair, "done!")
 
@@ -47,7 +56,7 @@ def test_work(start_timestamp: int, currency_pairs_list: list[str]) -> NoReturn:
 
     while timestamp <= int(time()) * 1000:
         for currency_pair in currency_pairs_list:
-            data_frame = candles_data[currency_pair].get_data(timestamp)
+            data_frame = get_data(candles_data[currency_pair], timestamp)
             print(datetime.utcfromtimestamp(timestamp / 1000).strftime("%d-%m-%Y %H:%M:%S")
                   + f"wins: {win}, loses: {lose}")
             if currency_pair not in predicts.keys():

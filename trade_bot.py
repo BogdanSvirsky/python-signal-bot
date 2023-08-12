@@ -70,8 +70,5 @@ class TradeBot:
 
 
 if __name__ == "__main__":
-    api = BinanceAPI(
-        "GENPXi3IwkasQcarm6eBNcaWAeBR6bs5qTNaRZgKALhmHHKQBVzHnfvZD1nu7RSy",
-        "2shPKm7JvugvqQY8CX2Nc5hFBGM7A6b9Wu7C4ztqEHHkcNc56Fp5d3rD0PB9oDX2"
-    )
+    pass
     # trade_bot.make_prediction(api.get_candles("BTCUSDT", "5m"))
