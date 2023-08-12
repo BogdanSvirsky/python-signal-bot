@@ -68,23 +68,21 @@ def test_work(start_timestamp: int, currency_pairs_list: list[str]) -> NoReturn:
             else:
                 last_candle = data_frame.iloc[-1]
                 predict = predicts[currency_pair]
-                if predict.take_profit_price <= last_candle["high_price"] and ((predict.close_price < last_candle[
-                    "low_price"] and predict.type == "LONG") or (predict.close_price > last_candle[
-                    "low_price"] and predict.type == "SHORT")):
-                    print("CLOSE", "WIN", predict, currency_pair)
-                    del predicts[currency_pair]
-                    win += 1
-                elif predict.close_price >= last_candle["low_price"]:
+                if last_candle["low_price"] <= predict.close_price <= last_candle["high_price"]:
                     print("CLOSE", "LOSE", predict, currency_pair)
                     del predicts[currency_pair]
                     lose += 1
+                elif last_candle["low_price"] <= predict.take_profit_price <= last_candle["high_price"]:
+                    print("CLOSE", "WIN", predict, currency_pair)
+                    del predicts[currency_pair]
+                    win += 1
         timestamp += 5 * 60 * 1000
 
 
 if __name__ == "__main__":
     # api = BinanceAPI()
     # print(ExchangeData(api.get_candles("BTCUSDT", "5m")).get_data())
-    test_work(1685577600000, coin_list)
+    test_work(1685577600000, ["BTCUSDT"])
     # for currency_pair in coin_list:
     #     make_csv_data(1687951557000, currency_pair, "5m")
     #     print(currency_pair, " done!")
