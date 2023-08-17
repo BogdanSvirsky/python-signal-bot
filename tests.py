@@ -12,9 +12,12 @@ def get_data(candles_data: DataFrame, timestamp: int = int(time()) * 1000, count
         tmp = 5 * 60 * 1000
     else:
         tmp = 0
-    print(timestamp - count_rows * tmp, timestamp)
-    return candles_data.loc[(timestamp - count_rows * tmp) <= candles_data["open_time"]].loc[
+    result = candles_data.loc[(timestamp - count_rows * tmp) < candles_data["open_time"]].loc[
         candles_data["open_time"] <= timestamp]
+    if len(result) < 200:
+        return None
+    else:
+        return result
 
 
 def test_work(start_timestamp: int, currency_pairs_list: list[str]) -> NoReturn:
@@ -59,6 +62,9 @@ def test_work(start_timestamp: int, currency_pairs_list: list[str]) -> NoReturn:
             data_frame = get_data(candles_data[currency_pair], timestamp)
             print(datetime.utcfromtimestamp(timestamp / 1000).strftime("%d-%m-%Y %H:%M:%S")
                   + f"wins: {win}, loses: {lose}")
+            if data_frame is None:
+                print("little data")
+                continue
             if currency_pair not in predicts.keys():
                 predicts[currency_pair] = trade_bot.make_prediction(data_frame)
                 if predicts[currency_pair] is not None:
@@ -82,7 +88,7 @@ def test_work(start_timestamp: int, currency_pairs_list: list[str]) -> NoReturn:
 if __name__ == "__main__":
     # api = BinanceAPI()
     # print(ExchangeData(api.get_candles("BTCUSDT", "5m")).get_data())
-    test_work(1685577600000, ["BTCUSDT"])
+    test_work(1685577600000, ["XRPUSDT", "ADAUSDT", "SOLUSDT"])
     # for currency_pair in coin_list:
     #     make_csv_data(1687951557000, currency_pair, "5m")
     #     print(currency_pair, " done!")

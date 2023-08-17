@@ -20,6 +20,10 @@ def process_data(data_frame: pandas.DataFrame):
     data_frame["RSI20"] = ta.rsi(data_frame["close_price"], length=20)
     data_frame["RSI50"] = ta.rsi(data_frame["close_price"], length=50)
     data_frame["RSI200"] = ta.rsi(data_frame["close_price"], length=200)
+    last = str(data_frame["RSI20"]) + str(data_frame["RSI50"]) + str(data_frame["RSI200"])
+    data_frame.dropna(inplace=True)
+    if data_frame.empty:
+        print("empty2", last)
 
 
 @dataclass
@@ -49,7 +53,6 @@ class TradeBot:
             process_data(data_frame)
 
         data_frame["%DEV"] = (data_frame["open_price"] / data_frame["EMA200"] - 1) * 100
-        data_frame.dropna(inplace=True)
         x_data = numpy.array(data_frame["open_time"].tolist())
         y_data = numpy.array(data_frame["%DEV"].tolist())
         approximation = numpy.polynomial.Polynomial.fit(x_data, y_data, self.degree)

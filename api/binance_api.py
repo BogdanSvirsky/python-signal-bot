@@ -53,21 +53,21 @@ class BinanceAPI:
             "X-MBX-APIKEY": self.API_KEY
         }
 
-    def make_signature(self, body: dict) -> str:
+    def add_signature(self, body: dict) -> dict:
         hashed_sign = hmac.new(self.API_SECRET.encode('utf-8'), urlencode(body).encode('utf-8'),
                                hashlib.sha256).hexdigest()
 
-        return hashed_sign
+        body["signature"] = hashed_sign
+        return body
 
     def get_account(self) -> dict | None:
         params = {
             "timestamp": get_timestamp()
         }
-        params["signature"] = self.make_signature(params)
         print(self.API_KEY)
         response = requests.get(
             self.base_url + "/fapi/v2/account",
-            params=params,
+            params=self.add_signature(params),
             headers=self.header
         )
         if response.status_code == 200:
@@ -81,10 +81,9 @@ class BinanceAPI:
             "dualSidePosition": "true" if value else "false",
             "timestamp": get_timestamp()
         }
-        params["signature"] = self.make_signature(params)
         return requests.post(
             self.base_url + "/fapi/v1/positionSide/dual",
-            params=params,
+            params=self.add_signature(params),
             headers=self.header
         ).json()
 
@@ -141,17 +140,16 @@ class BinanceAPI:
         return result
 
     def make_order(self, currency_pair: str, side: str, order_type: str, price: float, leverage: int, quantity: int,
-                   stop_price: float = None, stop_price_type: str = None) -> dict:
+                   stop_price: float = None, stop_price_type: str = None, position_side: str = "BOTH",
+                   time_in_force: str = "FOK", reduce_only: bool = True) -> dict:
         params = {
             "symbol": currency_pair,
             "leverage": leverage,
             "timestamp": get_timestamp()
         }
-        params["signature"] = self.make_signature(params)
-
         leverage_response = requests.post(
             self.base_url + "/fapi/v1/leverage",
-            params=params,
+            params=self.add_signature(params),
             headers=self.header
         )
 
@@ -163,9 +161,11 @@ class BinanceAPI:
             "side": side,
             "type": order_type,
             "price": str(price),
-            "timeInForce": "GTC",
+            "timeInForce": time_in_force,
             "timestamp": get_timestamp(),
-            "quantity": quantity
+            "quantity": quantity,
+            "positionSide": position_side,
+            "reduceOnly": "true" if reduce_only else "false"
         }
 
         if stop_price is not None:
@@ -173,10 +173,9 @@ class BinanceAPI:
         if stop_price_type is not None:
             params["stopPriceType"] = stop_price_type
 
-        params["signature"] = self.make_signature(params)
         response = requests.post(
             self.base_url + "/fapi/v1/order",
-            params=params,
+            params=self.add_signature(params),
             headers=self.header
         )
 
@@ -188,10 +187,9 @@ class BinanceAPI:
             "origClientOrderId": client_order_id,
             "timestamp": get_timestamp()
         }
-        params["signature"] = self.make_signature(params)
         response = requests.post(
             self.base_url + "/fapi/v1/order",
-            params=params,
+            params=self.add_signature(params),
             headers=self.header
         )
 
@@ -203,10 +201,16 @@ class BinanceAPI:
             "origClientOrderId": client_order_id,
             "timestamp": get_timestamp()
         }
-        params["signature"] = self.make_signature(params)
         response = requests.get(
             self.base_url + "/fapi/v1/order",
-            params=params,
+            params=self.add_signature(params),
+            headers=self.header
+        )
+        return response.json()
+
+    def get_exchange_info(self) -> dict:
+        response = requests.get(
+            self.base_url + "/fapi/v1/exchangeInfo",
             headers=self.header
         )
         return response.json()
@@ -222,8 +226,9 @@ if __name__ == "__main__":
     price = api.get_candles("DOGEUSDT", "5m").iloc[-1]["close_price"]
     order1 = api.make_order("DOGEUSDT", "BUY", "LIMIT", price, 20, 100)
     time.sleep(0.1)
-    print(price, round(price * 1.03, 6))
-    order2 = api.make_order("DOGEUSDT", "SELL", "LIMIT", round(price * 1.03, 6), 20, 100)
+    price = api.get_candles("DOGEUSDT", "5m").iloc[-1]["close_price"]
+    print(round(price * 1.03, 6) - price)
+    order2 = api.make_order("DOGEUSDT", "SELL", "STOP", float(round(price * 1.03, 6)), 20, 100, stop_price=float(round(price * 1.03, 6)))
     print(order1, "open1")
     print(order2, "open2")
     print(api.get_order("DOGEUSDT", order1["clientOrderId"]), "get1")

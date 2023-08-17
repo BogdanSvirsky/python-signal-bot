@@ -61,7 +61,7 @@ coin_list: list[str] = ["ADAUSDT", "ATOMUSDT", "AVAXUSDT", "AXSUSDT", "BCHUSDT",
                         "BNBUSDT", "BTCUSDT", "COMPUSDT", "CRVUSDT", "DASHUSDT", "DOTUSDT", "DYDXUSDT", "ENJUSDT",
                         "EOSUSDT", "ETCUSDT", "ETHUSDT", "FTMUSDT", "KAVAUSDT", "KSMUSDT", "LINKUSDT", "ONEUSDT",
                         "SANDUSDT", "SOLUSDT", "SUSHIUSDT", "SXPUSDT", "TRXUSDT", "UNIUSDT", "UNFIUSDT", "PEOPLEUSDT",
-                        "DYDXUSDT", "ANCUSDT", "ANTUSDT", "API3USDT", "BALUSDT", "BELUSDT", "BNXUSDT", "BNXUSDT",
+                        "DYDXUSDT", "ANTUSDT", "API3USDT", "BALUSDT", "BELUSDT", "BNXUSDT", "BNXUSDT",
                         "DARUSDT", "DENTUSDT", "DGBUSDT", "ENSUSDT", "HNTUSDT", "IMXUSDT", "KLAYUSDT", "LITUSDT",
                         "LRCUSDT", "MASKUSDT", "XEMUSDT", "NUUSDT", "ROSEUSDT", "SNXUSDT", "STMXUSDT", "TOMOUSDT",
                         "WOOUSDT", "YFIIUSDT"]
