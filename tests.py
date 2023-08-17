@@ -14,6 +14,7 @@ def get_data(candles_data: DataFrame, timestamp: int = int(time()) * 1000, count
         tmp = 0
     result = candles_data.loc[(timestamp - count_rows * tmp) < candles_data["open_time"]].loc[
         candles_data["open_time"] <= timestamp]
+    result.dropna(inplace=True)
     if len(result) < 200:
         return None
     else:
@@ -60,8 +61,8 @@ def test_work(start_timestamp: int, currency_pairs_list: list[str]) -> NoReturn:
     while timestamp <= int(time()) * 1000:
         for currency_pair in currency_pairs_list:
             data_frame = get_data(candles_data[currency_pair], timestamp)
-            print(datetime.utcfromtimestamp(timestamp / 1000).strftime("%d-%m-%Y %H:%M:%S")
-                  + f"wins: {win}, loses: {lose}")
+            print(datetime.utcfromtimestamp(timestamp / 1000).strftime("%d-%m-%Y %H:%M:%S"),
+                  f"wins: {win}, loses: {lose}")
             if data_frame is None:
                 print("little data")
                 continue
