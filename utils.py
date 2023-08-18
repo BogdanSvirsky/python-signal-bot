@@ -1,5 +1,6 @@
 import numpy
 from matplotlib import pyplot
+from decimal import Decimal
 
 
 def plot_approx_data(x_data: numpy.core.multiarray, y_data: numpy.core.multiarray,
@@ -27,3 +28,28 @@ def plot_approx_diff_data(x_data: numpy.core.multiarray, y_approx_data: numpy.co
             ax.set_title("Производная")
         ax.legend()
     pyplot.show()
+
+
+def get_price_tick_size(currency_pair: str, info: dict) -> Decimal:
+    for item in info['symbols']:
+        if item['symbol'] == currency_pair:
+            for f in item['filters']:
+                if f['filterType'] == 'PRICE_FILTER':
+                    return Decimal(f['tickSize']).normalize()
+
+
+def get_lot_tick_size(currency_pair: str, info: dict, is_market: bool) -> Decimal:
+    for item in info['symbols']:
+        if item['symbol'] == currency_pair:
+            for f in item['filters']:
+                if (is_market and f["filterType"] == "MARKET_LOT_SIZE") or \
+                        (not is_market and f["filterType"] == "LOT_SIZE"):
+                    return Decimal(f['stepSize']).normalize()
+
+
+def get_precision(number: Decimal) -> int:
+    n = 0
+    while number * (10 ** n) != int(number * (10 ** n)):
+        n += 1
+
+    return n

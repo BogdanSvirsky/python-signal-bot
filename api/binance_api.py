@@ -5,7 +5,7 @@ from urllib.parse import urlencode
 import requests
 import time
 import pandas
-from utils import get_tick_size
+from utils import get_price_tick_size, get_precision, get_lot_tick_size
 from requests_futures.sessions import FuturesSession
 from concurrent.futures import as_completed
 
@@ -156,23 +156,31 @@ class BinanceAPI:
         if leverage_response.status_code != 200:
             print("vse ploho", leverage_response.json())
 
+        price_tick_size = get_precision(get_price_tick_size(currency_pair, self.get_exchange_info()))
+        lot_tick_size = get_precision(
+            get_lot_tick_size(currency_pair, self.get_exchange_info(), order_type == "MARKET")
+        )
+        print(price_tick_size, lot_tick_size)
+
         params = {
             "symbol": currency_pair,
             "side": side,
             "type": order_type,
-            "price": str(price),
+            "price": str(round(price, price_tick_size)),
             "timeInForce": time_in_force,
             "timestamp": get_timestamp(),
-            "quantity": quantity,
+            "quantity": str(round(quantity, lot_tick_size)),
             "positionSide": position_side
         }
 
         if stop_price is not None:
-            params["stopPrice"] = str(stop_price)
+            params["stopPrice"] = str(round(stop_price, price_tick_size))
         if stop_price_type is not None:
             params["stopPriceType"] = stop_price_type
         if reduce_only is not None:
             params["reduceOnly"] = reduce_only
+
+        print(params)
 
         response = requests.post(
             self.base_url + "/fapi/v1/order",
@@ -223,13 +231,15 @@ if __name__ == "__main__":
         "GENPXi3IwkasQcarm6eBNcaWAeBR6bs5qTNaRZgKALhmHHKQBVzHnfvZD1nu7RSy",
         "2shPKm7JvugvqQY8CX2Nc5hFBGM7A6b9Wu7C4ztqEHHkcNc56Fp5d3rD0PB9oDX2"
     )
-    print(api.set_dual_position(False))
-    tick = get_tick_size("DOGEUSDT", api.get_exchange_info())
+    # print(api.set_dual_position(False))
     price = api.get_candles("DOGEUSDT", "5m").iloc[-1]["close_price"]
-    order1 = api.make_order("DOGEUSDT", "BUY", "LIMIT", price, 20, 100, time_in_force="GTC")
-    order2 = api.make_order("DOGEUSDT", "SELL", "STOP", price + tick, 20, 100,
-                            stop_price=price + tick, time_in_force="GTC")
-    print(order1, "open1")
-    print(order2, "open2")
-    print(api.cancel_order("DOGEUSDT", order1["clientOrderId"]), "close1")
-    print(api.cancel_order("DOGEUSDT", order2["clientOrderId"]), "close2")
+    # order1 = api.make_order("DOGEUSDT", "BUY", "LIMIT", price, 20, 100, time_in_force="GTC")
+    # order2 = api.make_order("DOGEUSDT", "SELL", "STOP", price * 0.99, 20, 100,
+    #                         stop_price=price * 0.99, time_in_force="GTC")
+    # order3 = api.make_order("DOGEUSDT", "SELL", "TAKE_PROFIT", price * 1.03, 20, 100,
+    #                         stop_price=price * 1.03, time_in_force="GTC")
+    # print(order1, "open1")
+    # print(order2, "open2")
+    # print(order3, "open2")
+    # print(api.cancel_order("DOGEUSDT", order1["clientOrderId"]), "close1")
+    # print(api.cancel_order("DOGEUSDT", order2["clientOrderId"]), "close2")
