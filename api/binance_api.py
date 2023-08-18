@@ -5,7 +5,7 @@ from urllib.parse import urlencode
 import requests
 import time
 import pandas
-from typing import NoReturn
+from utils import get_tick_size
 from requests_futures.sessions import FuturesSession
 from concurrent.futures import as_completed
 
@@ -133,7 +133,7 @@ class BinanceAPI:
             if future.result().status_code == 200:
                 result = pandas.concat([result, process_get_candles_data(future.result())])
             else:
-                raise Exception("Bad future!")
+                print(future.result())
 
         result = result.sort_values("open_time", ignore_index=True)
 
@@ -141,7 +141,7 @@ class BinanceAPI:
 
     def make_order(self, currency_pair: str, side: str, order_type: str, price: float, leverage: int, quantity: int,
                    stop_price: float = None, stop_price_type: str = None, position_side: str = "BOTH",
-                   time_in_force: str = "FOK", reduce_only: bool = True) -> dict:
+                   time_in_force: str = "FOK", reduce_only: bool = None) -> dict:
         params = {
             "symbol": currency_pair,
             "leverage": leverage,
@@ -164,14 +164,15 @@ class BinanceAPI:
             "timeInForce": time_in_force,
             "timestamp": get_timestamp(),
             "quantity": quantity,
-            "positionSide": position_side,
-            "reduceOnly": "true" if reduce_only else "false"
+            "positionSide": position_side
         }
 
         if stop_price is not None:
             params["stopPrice"] = str(stop_price)
         if stop_price_type is not None:
             params["stopPriceType"] = stop_price_type
+        if reduce_only is not None:
+            params["reduceOnly"] = reduce_only
 
         response = requests.post(
             self.base_url + "/fapi/v1/order",
@@ -223,15 +224,12 @@ if __name__ == "__main__":
         "2shPKm7JvugvqQY8CX2Nc5hFBGM7A6b9Wu7C4ztqEHHkcNc56Fp5d3rD0PB9oDX2"
     )
     print(api.set_dual_position(False))
+    tick = get_tick_size("DOGEUSDT", api.get_exchange_info())
     price = api.get_candles("DOGEUSDT", "5m").iloc[-1]["close_price"]
-    order1 = api.make_order("DOGEUSDT", "BUY", "LIMIT", price, 20, 100)
-    time.sleep(0.1)
-    price = api.get_candles("DOGEUSDT", "5m").iloc[-1]["close_price"]
-    print(round(price * 1.03, 6) - price)
-    order2 = api.make_order("DOGEUSDT", "SELL", "STOP", float(round(price * 1.03, 6)), 20, 100, stop_price=float(round(price * 1.03, 6)))
+    order1 = api.make_order("DOGEUSDT", "BUY", "LIMIT", price, 20, 100, time_in_force="GTC")
+    order2 = api.make_order("DOGEUSDT", "SELL", "STOP", price + tick, 20, 100,
+                            stop_price=price + tick, time_in_force="GTC")
     print(order1, "open1")
     print(order2, "open2")
-    print(api.get_order("DOGEUSDT", order1["clientOrderId"]), "get1")
-    print(api.get_order("DOGEUSDT", order2["clientOrderId"]), "get2")
     print(api.cancel_order("DOGEUSDT", order1["clientOrderId"]), "close1")
     print(api.cancel_order("DOGEUSDT", order2["clientOrderId"]), "close2")
