@@ -55,9 +55,11 @@ class TradeBot:
         data_frame["%DEV"] = (data_frame["open_price"] / data_frame["EMA200"] - 1) * 100
         x_data = numpy.array(data_frame["open_time"].tolist())
         y_data = numpy.array(data_frame["%DEV"].tolist())
-        if data_frame.empty:
+        try:
+            approximation = numpy.polynomial.Polynomial.fit(x_data, y_data, self.degree)
+        except Exception as e:
+            print(e)
             return None
-        approximation = numpy.polynomial.Polynomial.fit(x_data, y_data, self.degree)
         last_timestamp = x_data[-1]
         interval = 900000  # interval in ms, where we want to see a roots
         diff_y = approximation.deriv()
