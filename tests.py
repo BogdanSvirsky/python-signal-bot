@@ -34,11 +34,11 @@ def test_work(start_timestamp: int, currency_pairs_list: list[str]) -> NoReturn:
     timestamp: int = start_timestamp
     predicts: dict[str, Predict] = {}
     candles_data: dict[str, DataFrame] = {}
-    count = 1500
     now_timestamp = int(time()) * 1000
     print("getting data")
 
     for currency_pair in currency_pairs_list:
+        count = 1500
         requests_list: list[GetCandlesRequest] = []
         while timestamp < now_timestamp:
             if (now_timestamp - timestamp) // (5 * 60 * 1000) < 1500:
