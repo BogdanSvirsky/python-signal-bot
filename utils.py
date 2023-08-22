@@ -16,6 +16,15 @@ def plot_approx_data(x_data: numpy.core.multiarray, y_data: numpy.core.multiarra
     pyplot.show()
 
 
+def plot_win_rate(y_data: list, x_data: list):
+    fig, ax = pyplot.subplots(ncols=1, nrows=1)
+    ax.plot(x_data, y_data, color="red")
+    ax.set_xlabel("Временные метки")
+    ax.set_ylabel("Отношение побед ко всем сделкам")
+    ax.legend()
+    pyplot.show()
+
+
 def plot_approx_diff_data(x_data: numpy.core.multiarray, y_approx_data: numpy.core.multiarray,
                           y_diff_data: numpy.core.multiarray):
     fig, axs = pyplot.subplots(nrows=2, ncols=1)

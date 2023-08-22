@@ -4,6 +4,7 @@ from trade_bot import TradeBot, Predict
 from time import time
 from typing import NoReturn
 from datetime import datetime
+from utils import plot_win_rate
 from main import coin_list
 
 
@@ -57,12 +58,14 @@ def test_work(start_timestamp: int, currency_pairs_list: list[str]) -> NoReturn:
     timestamp = start_timestamp + 500 * 5 * 60 * 1000
     print("data completed")
     win, lose = 0, 0
+    win_rates = {}
 
     while timestamp <= int(time()) * 1000:
         for currency_pair in currency_pairs_list:
             data_frame = get_data(candles_data[currency_pair], timestamp)
             print(datetime.utcfromtimestamp(timestamp / 1000).strftime("%d-%m-%Y %H:%M:%S"),
                   f"wins: {win}, loses: {lose}")
+            win_rates[data_frame.iloc[-1]["open_time"]] = win / (win + lose) if win != 0 or lose != 0 else 0
             if data_frame is None:
                 print("little data")
                 continue
@@ -85,11 +88,13 @@ def test_work(start_timestamp: int, currency_pairs_list: list[str]) -> NoReturn:
                     win += 1
         timestamp += 5 * 60 * 1000
 
+    plot_win_rate(win_rates.values(), win_rates.keys())
+
 
 if __name__ == "__main__":
     # api = BinanceAPI()
     # print(ExchangeData(api.get_candles("BTCUSDT", "5m")).get_data())
-    test_work(1685577600000, ["XRPUSDT", "ADAUSDT", "SOLUSDT"])
+    test_work(1690880416000, ["BTCUSDT"])
     # for currency_pair in coin_list:
     #     make_csv_data(1687951557000, currency_pair, "5m")
     #     print(currency_pair, " done!")
