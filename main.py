@@ -84,7 +84,7 @@ if __name__ == '__main__':
         "2shPKm7JvugvqQY8CX2Nc5hFBGM7A6b9Wu7C4ztqEHHkcNc56Fp5d3rD0PB9oDX2"
     )
     currency_pairs_list = ["BTCUSDT", "DOGEUSDT"]
-    orders: dict[str, tuple[str, str, int]] = {}  # tuple orderId and close time by symbol
+    orders: dict[str, tuple[str, str, str]] = {}  # tuple orderId and close time by symbol
     while True:
         for currency_pair in currency_pairs_list:
             if currency_pair not in orders.keys():
@@ -92,20 +92,49 @@ if __name__ == '__main__':
                 predict = trade_bot.make_prediction(data_frame)
                 if predict:
                     price = data_frame.iloc[-1]["close_price"]
-                    limit_order_id = binance_api.make_order(
+                    limit_order = binance_api.make_order(
                         currency_pair,
                         "BUY" if predict.type == "LONG" else "SELL",
                         "LIMIT",
-                        price * 1.0001,
-                        
-                    )["clientOrderId"]
-                    take_profit_order_id = binance_api.make_order(...)["clientOrderId"]
+                        price,
+                        20,
+                        0.5 / price,
+                        reduce_only=True,
+                        time_in_force="GTC"
+                    )
+                    stop_loss_order = binance_api.make_order(
+                        currency_pair,
+                        "SELL" if predict.type == "LONG" else "BUY",
+                        "STOP",
+                        price * 0.99 if predict.type == "LONG" else price * 1.01,
+                        20,
+                        10 / price,
+                        stop_price=price * 0.99 if predict.type == "LONG" else price * 1.01,
+                        reduce_only=True,
+                        time_in_force="GTC"
+                    )
+                    take_profit_order = binance_api.make_order(
+                        currency_pair,
+                        "SELL" if predict.type == "LONG" else "BUY",
+                        "TAKE_PROFIT",
+                        price * 0.97 if predict.type == "LONG" else price * 1.03,
+                        20,
+                        10 / price,
+                        stop_price=price * 0.97 if predict.type == "LONG" else price * 1.03,
+                        time_in_force="GTC"
+                    )
                     orders[currency_pair] = (
-                        limit_order_id, take_profit_order_id, (int(time.time()) + 6 * 5 * 60) * 1000
+                        limit_order["clientOrderId"],
+                        take_profit_order["clientOrderId"],
+                        stop_loss_order["clientOrderId"]
                     )
             elif currency_pair in orders.keys():
-                limit_order_id, take_profit_order_id, close_time = orders[currency_pair]
-                if close_time <= time.time() * 1000 * 5 * 60 * 6:
-                    binance_api.cancel_order(currency_pair, limit_order_id)
-                    binance_api.cancel_order(currency_pair, take_profit_order_id)
+                limit_order = binance_api.get_order(currency_pair, orders[currency_pair][0])
+                stop_loss_order = binance_api.get_order(currency_pair, orders[currency_pair][1])
+                take_profit_order = binance_api.get_order(currency_pair, orders[currency_pair][2])
+                statuses = [
+                    limit_order["status"], stop_loss_order["status"], take_profit_order["status"]
+                ]
+                if "CANCELLED" in statuses or "EXPIRED" in statuses:
+                    binance_api.cancel_all_open_orders(currency_pair)
                     del orders[currency_pair]

@@ -26,6 +26,7 @@ def process_get_candles_data(response: requests.Response) -> pandas.DataFrame:
     data_frame = data_frame.drop(columns=[9, 10, 11])
     data_frame.columns = ["open_time", "open_price", "high_price", "low_price", "close_price",
                           "volume", "close_time", "quote_asset_volume", "number_of_trades"]
+    data_frame.dropna(inplace=True)
 
     return data_frame
 
@@ -131,7 +132,8 @@ class BinanceAPI:
 
         for future in as_completed(futures):
             if future.result().status_code == 200:
-                result = pandas.concat([result, process_get_candles_data(future.result())])
+                data_frame = process_get_candles_data(future.result())
+                result = pandas.concat([result, data_frame])
             else:
                 print(future.result())
 
@@ -139,9 +141,9 @@ class BinanceAPI:
 
         return result
 
-    def make_order(self, currency_pair: str, side: str, order_type: str, price: float, leverage: int, quantity: int,
-                   stop_price: float = None, stop_price_type: str = None, position_side: str = "BOTH",
-                   time_in_force: str = "FOK", reduce_only: bool = None) -> dict:
+    def make_order(self, currency_pair: str, side: str, order_type: str, price: float, leverage: int,
+                   quantity: int, stop_price: float = None, stop_price_type: str = None,
+                   position_side: str = "BOTH", time_in_force: str = "FOK", reduce_only: bool = None) -> dict:
         params = {
             "symbol": currency_pair,
             "leverage": leverage,
@@ -182,13 +184,16 @@ class BinanceAPI:
 
         print(params)
 
-        response = requests.post(
+        result = requests.post(
             self.base_url + "/fapi/v1/order",
             params=self.add_signature(params),
             headers=self.header
-        )
+        ).json()
 
-        return response.json()
+        if result["code"] != 200:
+            raise Exception("can't open order " + result["msg"] + " " + params)
+
+        return result
 
     def cancel_order(self, currency_pair: str, client_order_id: str) -> dict | None:
         params = {
@@ -203,6 +208,21 @@ class BinanceAPI:
         )
 
         return response.json()
+
+    def cancel_all_open_orders(self, currency_pair: str) -> dict:
+        params = {
+            "symbol": currency_pair,
+            "timestamp": get_timestamp(),
+        }
+        result = requests.delete(
+            self.base_url + "/fapi/v1/allOpenOrders",
+            params=self.add_signature(params),
+            headers=self.header
+        ).json()
+        if result["code"] != 200:
+            raise Exception("can't close open orders " + result["msg"])
+
+        return result
 
     def get_order(self, currency_pair: str, client_order_id: str) -> dict:
         params = {
