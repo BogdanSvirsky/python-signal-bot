@@ -63,13 +63,13 @@ def test_work(start_timestamp: int, currency_pairs_list: list[str]) -> NoReturn:
     while timestamp <= int(time()) * 1000:
         for currency_pair in currency_pairs_list:
             data_frame = get_data(candles_data[currency_pair], timestamp)
-            print(datetime.utcfromtimestamp(timestamp / 1000).strftime("%d-%m-%Y %H:%M:%S"),
-                  f"wins: {win}, loses: {lose}")
-            win_rates[data_frame.iloc[-1]["open_time"]] = win / (win + lose) if win != 0 or lose != 0 else 0
-            if data_frame is None:
-                print("little data")
-                continue
             if currency_pair not in predicts.keys():
+                print(datetime.utcfromtimestamp(timestamp / 1000).strftime("%d-%m-%Y %H:%M:%S"),
+                      f"wins: {win}, loses: {lose}")
+                if data_frame is None:
+                    print("little data")
+                    continue
+                win_rates[data_frame.iloc[-1]["open_time"]] = win / (win + lose) if win != 0 or lose != 0 else 0
                 predicts[currency_pair] = trade_bot.make_prediction(data_frame)
                 if predicts[currency_pair] is not None:
                     print("OPEN", predicts[currency_pair], currency_pair)

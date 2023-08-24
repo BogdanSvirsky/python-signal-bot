@@ -158,6 +158,20 @@ class BinanceAPI:
         if leverage_response.status_code != 200:
             print("vse ploho", leverage_response.json())
 
+        params = {
+            "symbol": currency_pair,
+            "marginType": "CROSSED",
+            "timestamp": get_timestamp()
+        }
+
+        margin_response = requests.post(
+            self.base_url + "/fapi/v1/marginType",
+            params=self.add_signature(params),
+            headers=self.header
+        ).json()
+
+        print(margin_response)
+
         price_tick_size = get_precision(get_price_tick_size(currency_pair, self.get_exchange_info()))
         lot_tick_size = get_precision(
             get_lot_tick_size(currency_pair, self.get_exchange_info(), order_type == "MARKET")

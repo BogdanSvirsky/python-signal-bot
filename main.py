@@ -1,12 +1,8 @@
-import time
-
-from trade_bot import TradeBot, Predict
+from trade_bot import TradeBot
 from telegram.ext import Application, CommandHandler, ContextTypes
 from telegram import Update
 from typing import Callable, NoReturn
-from time import sleep
 from api.binance_api import BinanceAPI
-from api.kucoin_api import KucoinAPI
 
 
 def auth(handler: Callable[[Update, ContextTypes], NoReturn]):
@@ -97,7 +93,7 @@ if __name__ == '__main__':
                         "BUY" if predict.type == "LONG" else "SELL",
                         "LIMIT",
                         price,
-                        20,
+                        20 if currency_pair != "BTCUSDT" else 75,
                         0.5 / price,
                         reduce_only=True,
                         time_in_force="GTC"
@@ -107,7 +103,7 @@ if __name__ == '__main__':
                         "SELL" if predict.type == "LONG" else "BUY",
                         "STOP",
                         price * 0.99 if predict.type == "LONG" else price * 1.01,
-                        20,
+                        20 if currency_pair != "BTCUSDT" else 75,
                         10 / price,
                         stop_price=price * 0.99 if predict.type == "LONG" else price * 1.01,
                         reduce_only=True,
@@ -118,7 +114,7 @@ if __name__ == '__main__':
                         "SELL" if predict.type == "LONG" else "BUY",
                         "TAKE_PROFIT",
                         price * 0.97 if predict.type == "LONG" else price * 1.03,
-                        20,
+                        20 if currency_pair != "BTCUSDT" else 75,
                         10 / price,
                         stop_price=price * 0.97 if predict.type == "LONG" else price * 1.03,
                         time_in_force="GTC"
