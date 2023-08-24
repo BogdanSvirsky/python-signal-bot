@@ -53,14 +53,14 @@ async def stop_trade(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 coin_list: list[str] = ["ADAUSDT", "ATOMUSDT", "AVAXUSDT", "AXSUSDT", "BCHUSDT", "BNBUSDT", "BTCUSDT", "CHRUSDT",
                         "CRVUSDT", "DOTUSDT", "ETHUSDT", "FTMUSDT", "LINKUSDT", "MATICUSDT", "ONEUSDT", "SOLUSDT",
-                        "CHZUSDT", "1INCHUSDT", "AAVEUSDT", "ADAUSDT", "ATOMUSDT", "AVAXUSDT", "AXSUSDT", "BCHUSDT",
-                        "BNBUSDT", "BTCUSDT", "COMPUSDT", "CRVUSDT", "DASHUSDT", "DOTUSDT", "DYDXUSDT", "ENJUSDT",
-                        "EOSUSDT", "ETCUSDT", "ETHUSDT", "FTMUSDT", "KAVAUSDT", "KSMUSDT", "LINKUSDT", "ONEUSDT",
-                        "SANDUSDT", "SOLUSDT", "SUSHIUSDT", "SXPUSDT", "TRXUSDT", "UNIUSDT", "UNFIUSDT", "PEOPLEUSDT",
-                        "DYDXUSDT", "ANTUSDT", "API3USDT", "BALUSDT", "BELUSDT", "BNXUSDT", "BNXUSDT",
-                        "DARUSDT", "DENTUSDT", "DGBUSDT", "ENSUSDT", "HNTUSDT", "IMXUSDT", "KLAYUSDT", "LITUSDT",
-                        "LRCUSDT", "MASKUSDT", "XEMUSDT", "NUUSDT", "ROSEUSDT", "SNXUSDT", "STMXUSDT", "TOMOUSDT",
-                        "WOOUSDT", "YFIIUSDT"]
+                        "CHZUSDT", "1INCHUSDT", "AAVEUSDT",
+                        "COMPUSDT", "DASHUSDT",  "DYDXUSDT", "ENJUSDT",
+                        "EOSUSDT", "ETCUSDT",   "KAVAUSDT", "KSMUSDT",
+                        "SANDUSDT",  "SUSHIUSDT", "SXPUSDT", "TRXUSDT", "UNIUSDT", "UNFIUSDT", "PEOPLEUSDT",
+                         "ANTUSDT", "API3USDT", "BALUSDT", "BELUSDT", "BNXUSDT",
+                        "DARUSDT", "DENTUSDT", "DGBUSDT", "ENSUSDT", "IMXUSDT", "KLAYUSDT", "LITUSDT",
+                        "LRCUSDT", "MASKUSDT", "XEMUSDT", "ROSEUSDT", "SNXUSDT", "STMXUSDT", "TOMOUSDT",
+                        "WOOUSDT", "YFIUSDT"]
 
 current_users = [557001882, 978982709]
 current_chats = []
@@ -94,7 +94,7 @@ if __name__ == '__main__':
                         "LIMIT",
                         price,
                         20 if currency_pair != "BTCUSDT" else 75,
-                        0.5 / price,
+                        10 / price,
                         reduce_only=True,
                         time_in_force="GTC"
                     )
@@ -102,10 +102,10 @@ if __name__ == '__main__':
                         currency_pair,
                         "SELL" if predict.type == "LONG" else "BUY",
                         "STOP",
-                        price * 0.99 if predict.type == "LONG" else price * 1.01,
+                        price * 0.995 if predict.type == "LONG" else price * 1.005,
                         20 if currency_pair != "BTCUSDT" else 75,
                         10 / price,
-                        stop_price=price * 0.99 if predict.type == "LONG" else price * 1.01,
+                        stop_price=price * 0.995 if predict.type == "LONG" else price * 1.005,
                         reduce_only=True,
                         time_in_force="GTC"
                     )
@@ -113,10 +113,10 @@ if __name__ == '__main__':
                         currency_pair,
                         "SELL" if predict.type == "LONG" else "BUY",
                         "TAKE_PROFIT",
-                        price * 0.97 if predict.type == "LONG" else price * 1.03,
+                        price * 0.985 if predict.type == "LONG" else price * 1.015,
                         20 if currency_pair != "BTCUSDT" else 75,
                         10 / price,
-                        stop_price=price * 0.97 if predict.type == "LONG" else price * 1.03,
+                        stop_price=price * 0.985 if predict.type == "LONG" else price * 1.015,
                         time_in_force="GTC"
                     )
                     orders[currency_pair] = (
