@@ -8,6 +8,7 @@ import pandas
 from utils import get_price_tick_size, get_precision, get_lot_tick_size
 from requests_futures.sessions import FuturesSession
 from concurrent.futures import as_completed
+from typing import Optional
 
 
 def get_timestamp() -> int:
@@ -89,7 +90,7 @@ class BinanceAPI:
         ).json()
 
     def get_candles(self, currency_pair: str, interval: str, start_time: int = None,
-                    end_time: int = None, limit: int = 500) -> pandas.DataFrame:  # time in ms
+                    end_time: int = None, limit: int = 500) -> Optional[pandas.DataFrame]:  # time in ms
         params = {
             "symbol": currency_pair,
             "interval": interval,
@@ -99,11 +100,14 @@ class BinanceAPI:
             params["startTime"] = start_time
         if end_time is not None:
             params["endTime"] = end_time
-
-        response = requests.get(
-            self.base_url + "/fapi/v1/klines",
-            params=params
-        )
+        try:
+            response = requests.get(
+                self.base_url + "/fapi/v1/klines",
+                params=params
+            )
+        except Exception as e:
+            print("get_candles()", e)
+            return None
         if response.status_code == 200:
             return process_get_candles_data(response)
         else:

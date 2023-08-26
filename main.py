@@ -85,6 +85,9 @@ if __name__ == '__main__':
         for currency_pair in currency_pairs_list:
             if currency_pair not in orders.keys():
                 data_frame = binance_api.get_candles(currency_pair, "5m")
+                if data_frame is None:
+                    continue
+                print("ok")
                 predict = trade_bot.make_prediction(data_frame)
                 if predict:
                     price = data_frame.iloc[-1]["close_price"]
