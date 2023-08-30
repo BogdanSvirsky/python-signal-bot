@@ -87,9 +87,10 @@ if __name__ == '__main__':
                 data_frame = binance_api.get_candles(currency_pair, "5m")
                 if data_frame is None:
                     continue
-                print("ok")
                 predict = trade_bot.make_prediction(data_frame)
+                print(predict)
                 if predict is not None:
+                    print("in order")
                     price = data_frame.iloc[-1]["close_price"]
                     limit_order = binance_api.make_order(
                         currency_pair,

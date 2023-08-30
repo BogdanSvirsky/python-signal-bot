@@ -32,7 +32,7 @@ def test_work(start_timestamp: int, currency_pairs_list: list[str]) -> NoReturn:
     trade_bot = TradeBot()
     trade_bot.up_ratio = 4
     trade_bot.down_ratio = 0
-    timestamp: int = start_timestamp
+    timestamp: int = start_timestamp - 500 * 5 * 60 * 1000
     predicts: dict[str, Predict] = {}
     candles_data: dict[str, DataFrame] = {}
     now_timestamp = int(time()) * 1000
@@ -55,7 +55,7 @@ def test_work(start_timestamp: int, currency_pairs_list: list[str]) -> NoReturn:
         timestamp = start_timestamp
         print(currency_pair, "done!")
 
-    timestamp = start_timestamp + 500 * 5 * 60 * 1000
+    timestamp = start_timestamp
     print("data completed")
     win, lose = 0, 0
     win_rates = {}
@@ -94,7 +94,7 @@ def test_work(start_timestamp: int, currency_pairs_list: list[str]) -> NoReturn:
 if __name__ == "__main__":
     # api = BinanceAPI()
     # print(ExchangeData(api.get_candles("BTCUSDT", "5m")).get_data())
-    test_work(1690880416000, ["BTCUSDT"])
+    test_work(1693342800000, ["BTCUSDT"])
     # for currency_pair in coin_list:
     #     make_csv_data(1687951557000, currency_pair, "5m")
     #     print(currency_pair, " done!")
