@@ -108,7 +108,7 @@ if __name__ == '__main__':
                         "STOP",
                         price * 0.995 if predict.type == "LONG" else price * 1.005,
                         20 if currency_pair != "BTCUSDT" else 75,
-                        10 / price,
+                        10 / price if currency_pair != "BTCUSDT" else 37.5 / price,
                         stop_price=price * 0.995 if predict.type == "LONG" else price * 1.005,
                         reduce_only=True,
                         time_in_force="GTC"

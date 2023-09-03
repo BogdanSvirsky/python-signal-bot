@@ -39,7 +39,7 @@ class Predict:
 class TradeBot:
     def __init__(self):
         print("Trade bot initialized")
-        self.down_ratio: float = 4
+        self.down_ratio: float = 0
         self.up_ratio: float = 4.5
         self.degree: int = 6
         self.ratio_deviation: float = 1
@@ -61,7 +61,7 @@ class TradeBot:
             print(e)
             return None
         last_timestamp = x_data[-1]
-        interval = 10000  # interval in ms, where we want to see a roots
+        interval = 100000  # interval in ms, where we want to see a roots
         diff_y = approximation.deriv()
         diff_roots = fsolve(diff_y, numpy.array([last_timestamp - interval, last_timestamp + interval]))
         for root in diff_roots:
