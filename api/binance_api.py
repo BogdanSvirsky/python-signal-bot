@@ -208,8 +208,7 @@ class BinanceAPI:
             headers=self.header
         ).json()
 
-        if result["code"] != 200:
-            raise Exception("can't open order " + result["msg"] + " " + params)
+        print(result)
 
         return result
 
@@ -237,8 +236,6 @@ class BinanceAPI:
             params=self.add_signature(params),
             headers=self.header
         ).json()
-        if result["code"] != 200:
-            raise Exception("can't close open orders " + result["msg"])
 
         return result
 
@@ -270,7 +267,7 @@ if __name__ == "__main__":
         "2shPKm7JvugvqQY8CX2Nc5hFBGM7A6b9Wu7C4ztqEHHkcNc56Fp5d3rD0PB9oDX2"
     )
     # print(api.set_dual_position(False))
-    price = api.get_candles("DOGEUSDT", "5m").iloc[-1]["close_price"]
+    # price = api.get_candles("DOGEUSDT", "5m").iloc[-1]["close_price"]
     # order1 = api.make_order("DOGEUSDT", "BUY", "LIMIT", price, 20, 100, time_in_force="GTC")
     # order2 = api.make_order("DOGEUSDT", "SELL", "STOP", price * 0.99, 20, 100,
     #                         stop_price=price * 0.99, time_in_force="GTC")
