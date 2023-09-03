@@ -98,7 +98,7 @@ if __name__ == '__main__':
                         "LIMIT",
                         price,
                         20 if currency_pair != "BTCUSDT" else 75,
-                        10 / price,
+                        10 / price if currency_pair != "BTCUSDT" else 37.5 / price,
                         reduce_only=True,
                         time_in_force="GTC"
                     )
@@ -119,7 +119,7 @@ if __name__ == '__main__':
                         "TAKE_PROFIT",
                         price * 0.985 if predict.type == "LONG" else price * 1.015,
                         20 if currency_pair != "BTCUSDT" else 75,
-                        10 / price,
+                        10 / price if currency_pair != "BTCUSDT" else 37.5 / price,
                         stop_price=price * 0.985 if predict.type == "LONG" else price * 1.015,
                         time_in_force="GTC"
                     )
