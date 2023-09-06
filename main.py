@@ -99,7 +99,7 @@ if __name__ == '__main__':
                         price,
                         20 if currency_pair != "BTCUSDT" else 75,
                         10 / price if currency_pair != "BTCUSDT" else 37.5 / price,
-                        reduce_only=True,
+                        reduce_only=False,
                         time_in_force="GTC"
                     )
                     stop_loss_order = binance_api.make_order(
@@ -110,17 +110,17 @@ if __name__ == '__main__':
                         20 if currency_pair != "BTCUSDT" else 75,
                         10 / price if currency_pair != "BTCUSDT" else 37.5 / price,
                         stop_price=price * 0.995 if predict.type == "LONG" else price * 1.005,
-                        reduce_only=True,
+                        reduce_only=False,
                         time_in_force="GTC"
                     )
                     take_profit_order = binance_api.make_order(
                         currency_pair,
                         "SELL" if predict.type == "LONG" else "BUY",
                         "TAKE_PROFIT",
-                        price * 0.985 if predict.type == "LONG" else price * 1.015,
+                        price * 1.015 if predict.type == "LONG" else price * 0.985,
                         20 if currency_pair != "BTCUSDT" else 75,
                         10 / price if currency_pair != "BTCUSDT" else 37.5 / price,
-                        stop_price=price * 0.985 if predict.type == "LONG" else price * 1.015,
+                        stop_price=price * 1.015 if predict.type == "LONG" else price * 0.985,
                         time_in_force="GTC"
                     )
                     orders[currency_pair] = (
