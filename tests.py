@@ -110,10 +110,12 @@ def test_irl(currency_pair_list: list[str]) -> None:
                         (predict.type == "LONG" and current_price >= predict.take_profit_price):
                     wins += 1
                     print("WIN", predict, f"WINRATE = {wins / (wins + loses)}")
+                    del orders[currency_pair]
                 elif (predict.type == "SHORT" and current_price >= predict.close_price) or \
                         (predict.type == "LONG" and current_price <= predict.close_price):
                     loses += 1
                     print("LOSE", predict, f"WINRATE = {wins / (wins + loses)}")
+                    del orders[currency_pair]
 
 
 if __name__ == "__main__":
