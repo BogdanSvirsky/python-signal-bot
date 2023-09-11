@@ -91,10 +91,36 @@ def test_work(start_timestamp: int, currency_pairs_list: list[str]) -> NoReturn:
     plot_win_rate(win_rates.values(), win_rates.keys())
 
 
+def test_irl(currency_pair_list: list[str]) -> None:
+    api = BinanceAPI()
+    trade_bot = TradeBot()
+    orders = {}
+    wins, loses = 0, 0
+    while True:
+        for currency_pair in currency_pair_list:
+            if currency_pair not in orders.keys():
+                predict = trade_bot.make_prediction(api.get_candles(currency_pair, "5m"))
+                if predict is not None:
+                    orders[currency_pair] = predict
+                print(predict, currency_pair)
+            else:
+                predict = orders[currency_pair]
+                current_price = api.get_candles(currency_pair, "5m").iloc[-1]["close_price"]
+                if (predict.type == "SHORT" and current_price <= predict.take_profit_price) or \
+                        (predict.type == "LONG" and current_price >= predict.take_profit_price):
+                    wins += 1
+                    print("WIN", predict, f"WINRATE = {wins / (wins + loses)}")
+                elif (predict.type == "SHORT" and current_price >= predict.close_price) or \
+                        (predict.type == "LONG" and current_price <= predict.close_price):
+                    loses += 1
+                    print("LOSE", predict, f"WINRATE = {wins / (wins + loses)}")
+
+
 if __name__ == "__main__":
     # api = BinanceAPI()
     # print(ExchangeData(api.get_candles("BTCUSDT", "5m")).get_data())
-    test_work(1693342800000, ["BTCUSDT"])
+    # test_work(1693555200000, ["BTCUSDT"])
     # for currency_pair in coin_list:
     #     make_csv_data(1687951557000, currency_pair, "5m")
     #     print(currency_pair, " done!")
+    test_irl(coin_list)

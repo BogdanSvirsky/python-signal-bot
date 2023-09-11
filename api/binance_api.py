@@ -108,10 +108,9 @@ class BinanceAPI:
         except Exception as e:
             print("get_candles()", e)
             return None
+
         if response.status_code == 200:
             return process_get_candles_data(response)
-        else:
-            raise Exception("Bad request :(")
 
     def get_a_lot_of_candles(self, requests_list: list[GetCandlesRequest]) -> pandas.DataFrame:
         result = pandas.DataFrame()
