@@ -39,7 +39,7 @@ class Predict:
 class TradeBot:
     def __init__(self):
         print("Trade bot initialized")
-        self.down_ratio: float = 0
+        self.down_ratio: float = 4
         self.up_ratio: float = 4.5
         self.degree: int = 6
         self.ratio_deviation: float = 1
@@ -61,17 +61,17 @@ class TradeBot:
             print(e)
             return None
         last_timestamp = x_data[-1]
-        interval = 100000  # interval in ms, where we want to see a roots
+        interval = 10000  # interval in ms, where we want to see a roots
         diff_y = approximation.deriv()
         diff_roots = fsolve(diff_y, numpy.array([last_timestamp - interval, last_timestamp + interval]))
         for root in diff_roots:
-            # current_price = data_frame["EMA200"].iloc[-1] * 1.0275  # test
-            current_price = data_frame["close_price"].iloc[-1]
+            current_price = data_frame["EMA200"].iloc[-1] * 1.04  # test
+            #current_price = data_frame["close_price"].iloc[-1]
             if self.down_ratio <= approximation(root) <= self.up_ratio:
-                predict = Predict("SHORT", current_price * 0.985, current_price * 1.005)
+                predict = Predict("SHORT", current_price * 0.99, current_price * 1.0033)
                 return predict
             elif -self.down_ratio >= approximation(root) >= -self.up_ratio:
-                predict = Predict("LONG", current_price * 1.015, current_price * 0.995)
+                predict = Predict("LONG", current_price * 1.01, current_price * 0.9967)
                 return predict
         return
 

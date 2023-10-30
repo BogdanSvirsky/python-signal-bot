@@ -8,8 +8,8 @@ from utils import plot_win_rate
 from main import coin_list
 
 
-def get_data(candles_data: DataFrame, timestamp: int = int(time()) * 1000, count_rows: int = 500, interval: str = "5m"):
-    if interval == "5m":
+def get_data(candles_data: DataFrame, timestamp: int = int(time()) * 1000, count_rows: int = 500, interval: str = "1m"):
+    if interval == "1m":
         tmp = 5 * 60 * 1000
     else:
         tmp = 0
@@ -23,16 +23,16 @@ def get_data(candles_data: DataFrame, timestamp: int = int(time()) * 1000, count
 
 
 def test_work(start_timestamp: int, currency_pairs_list: list[str]) -> NoReturn:
-    interval = "5m"
+    interval = "1m"
     api = BinanceAPI()
     api.set_api(
         "GENPXi3IwkasQcarm6eBNcaWAeBR6bs5qTNaRZgKALhmHHKQBVzHnfvZD1nu7RSy",
         "2shPKm7JvugvqQY8CX2Nc5hFBGM7A6b9Wu7C4ztqEHHkcNc56Fp5d3rD0PB9oDX2"
     )
     trade_bot = TradeBot()
-    trade_bot.up_ratio = 4
-    trade_bot.down_ratio = 0
-    timestamp: int = start_timestamp - 500 * 5 * 60 * 1000
+    trade_bot.up_ratio = 3.5
+    trade_bot.down_ratio = 3
+    timestamp: int = start_timestamp - 500 * 1 * 60 * 1000
     predicts: dict[str, Predict] = {}
     candles_data: dict[str, DataFrame] = {}
     now_timestamp = int(time()) * 1000
@@ -42,14 +42,14 @@ def test_work(start_timestamp: int, currency_pairs_list: list[str]) -> NoReturn:
         count = 1500
         requests_list: list[GetCandlesRequest] = []
         while timestamp < now_timestamp:
-            if (now_timestamp - timestamp) // (5 * 60 * 1000) < 1500:
-                count = (now_timestamp - timestamp) // (5 * 60 * 1000)
+            if (now_timestamp - timestamp) // (1 * 60 * 1000) < 1500:
+                count = (now_timestamp - timestamp) // (1 * 60 * 1000)
             if count < 0:
                 break
             requests_list.append(
-                GetCandlesRequest(currency_pair, interval, timestamp, timestamp + 5 * 60 * 1000 * count, 1500)
+                GetCandlesRequest(currency_pair, interval, timestamp, timestamp + 1 * 60 * 1000 * count, 1500)
             )
-            timestamp += 5 * 60 * 1000 * 1500  # for 5m
+            timestamp += 1 * 60 * 1000 * 1500  # for 5m
 
         candles_data[currency_pair] = api.get_a_lot_of_candles(requests_list)
         timestamp = start_timestamp
@@ -86,7 +86,7 @@ def test_work(start_timestamp: int, currency_pairs_list: list[str]) -> NoReturn:
                     print("CLOSE", "WIN", predict, currency_pair)
                     del predicts[currency_pair]
                     win += 1
-        timestamp += 5 * 60 * 1000
+        timestamp += 1 * 60 * 1000
 
     plot_win_rate(win_rates.values(), win_rates.keys())
 
@@ -105,7 +105,7 @@ def test_irl(currency_pair_list: list[str]) -> None:
                 print(predict, currency_pair)
             else:
                 predict = orders[currency_pair]
-                current_price = api.get_candles(currency_pair, "5m").iloc[-1]["close_price"]
+                current_price = api.get_candles(currency_pair, "1m").iloc[-1]["close_price"]
                 if (predict.type == "SHORT" and current_price <= predict.take_profit_price) or \
                         (predict.type == "LONG" and current_price >= predict.take_profit_price):
                     wins += 1
@@ -125,4 +125,5 @@ if __name__ == "__main__":
     # for currency_pair in coin_list:
     #     make_csv_data(1687951557000, currency_pair, "5m")
     #     print(currency_pair, " done!")
-    test_irl(coin_list)
+    #test_irl(coin_list)
+    test_work(	1688922000000, "BTCUSDT")
