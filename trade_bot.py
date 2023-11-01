@@ -66,7 +66,7 @@ class TradeBot:
         diff_roots = fsolve(diff_y, numpy.array([last_timestamp - interval, last_timestamp + interval]))
         for root in diff_roots:
             current_price = data_frame["EMA200"].iloc[-1] * 1.04  # test
-            #current_price = data_frame["close_price"].iloc[-1]
+            # current_price = data_frame["close_price"].iloc[-1]
             if self.down_ratio <= approximation(root) <= self.up_ratio:
                 predict = Predict("SHORT", current_price * 0.99, current_price * 1.0033)
                 return predict

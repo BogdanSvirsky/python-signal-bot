@@ -3,13 +3,20 @@ from matplotlib import pyplot
 from decimal import Decimal
 
 
+def simple_plot(x_data, y_data):
+    fig, ax = pyplot.subplots(ncols=1, nrows=1, figsize=(12, 12))
+    ax.plot(x_data, y_data, marker="x", color="red", label="Значения", linewidth=0)
+    ax.set_xlabel("Временные метки")
+    ax.set_ylabel("% отклонения от EMA200")
+    ax.legend()
+    pyplot.show()
+
+
 def plot_approx_data(x_data: numpy.core.multiarray, y_data: numpy.core.multiarray,
-                     y_approx_data: numpy.core.multiarray, y_diff_data: numpy.core.multiarray) -> None:
-    print(y_approx_data)
+                     y_approx_data: numpy.core.multiarray) -> None:
     fig, ax = pyplot.subplots(ncols=1, nrows=1, figsize=(12, 12))
     ax.plot(x_data, y_data, marker="x", color="red", label="Исходные данные", linewidth=0)
-    ax.plot(x_data, y_approx_data, linewidth=0.5, label="Аппроксимация")
-    ax.plot(x_data, y_diff_data, linewidth=0.5, label="Производная")
+    ax.plot(x_data, y_approx_data, linewidth=1, label="Аппроксимация")
     ax.set_xlabel("Временные метки")
     ax.set_ylabel("% отклонения от EMA200")
     ax.legend()
